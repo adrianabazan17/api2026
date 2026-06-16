@@ -12,6 +12,20 @@ credentials:true
 }
 app.use(cors(corsOptions)); //habilitar los cors
 app.use(express.json());//para que interprete los objetos .json
+
+// AQUÍ VA LA RUTA PRINCIPAL
+app.get("/", (req, res) => {
+  res.json({
+    status: "API funcionando correctamente",
+    endpoints: [
+      "/api/clientes",
+      "/api/productos",
+      "/api/auth"
+    ]
+  });
+});
+
+
 //rutas
 app.use('/api',clientesRoutes)
 app.use('/api', productosRoutes)
