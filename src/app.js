@@ -24,7 +24,7 @@ const uploadsPath = path.resolve(__dirname, '../uploads');
 console.log('📂 Carpeta uploads expuesta en ojo:', uploadsPath);
 app.use('/uploads', express.static(uploadsPath));
 
-app.use('/api',productosRoutes)
+
 
 app.use(cors(corsOptions));
 app.use(express.json());
