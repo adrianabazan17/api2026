@@ -1,7 +1,5 @@
 import express from 'express'
 import cors from 'cors';
-
-
 import clientesRoutes from './routes/clientes.routes.js'
 import productosRoutes from './routes/productos.routes.js'
 import authRoutes from './routes/auth.routes.js'
@@ -29,8 +27,6 @@ app.use('/uploads', express.static(uploadsPath));
 app.use(cors(corsOptions));
 app.use(express.json());
 
-//SERVIR IMÁGENES
-app.use('/uploads', express.static(path.resolve('src/uploads')));
 
 // RUTA PRINCIPAL
 app.get("/", (req, res) => {
