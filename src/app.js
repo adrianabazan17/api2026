@@ -6,7 +6,6 @@ import { fileURLToPath } from 'url';
 import clientesRoutes from './routes/clientes.routes.js';
 import productosRoutes from './routes/productos.routes.js';
 import authRoutes from './routes/auth.routes.js';
-import pedidosRoutes from './routes/pedidos.routes.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -51,7 +50,6 @@ app.get('/', (req, res) => {
 app.use('/api', clientesRoutes);
 app.use('/api', productosRoutes);
 app.use('/api', authRoutes);
-app.use('/api', pedidosRoutes);
 
 // ENDPOINT NO ENCONTRADO
 app.use((req, res) => {
