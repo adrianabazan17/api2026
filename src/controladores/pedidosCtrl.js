@@ -128,7 +128,11 @@ export const guardarPedido = async (req, res) => {
 // ===========================
 // OBTENER TODOS LOS PEDIDOS
 // ===========================
+// ===========================
+// OBTENER TODOS LOS PEDIDOS
+// ===========================
 export const getPedidos = async (req, res) => {
+
     try {
 
         const [pedidos] = await conmysql.query(`
@@ -138,11 +142,18 @@ export const getPedidos = async (req, res) => {
                 c.cli_nombre,
                 p.ped_fecha,
                 p.usr_id,
+                u.usr_nombre,
                 p.ped_estado
+
             FROM pedidos p
+
             LEFT JOIN clientes c
                 ON p.cli_id = c.cli_id
-            ORDER BY p.ped_fecha DESC
+
+            LEFT JOIN usuarios u
+                ON p.usr_id = u.usr_id
+
+            ORDER BY p.ped_id DESC
         `);
 
         const [detalles] = await conmysql.query(`
@@ -150,11 +161,15 @@ export const getPedidos = async (req, res) => {
                 d.det_id,
                 d.ped_id,
                 d.prod_id,
+
                 pr.prod_nombre,
                 pr.prod_imagen,
+
                 d.det_cantidad,
                 d.det_precio
+
             FROM pedidos_detalle d
+
             LEFT JOIN productos pr
                 ON d.prod_id = pr.prod_id
         `);
@@ -162,12 +177,45 @@ export const getPedidos = async (req, res) => {
         const pedidosConDetalles = pedidos.map(pedido => {
 
             const detallesPedido = detalles.filter(
-                d => d.ped_id === pedido.ped_id
+                d => d.ped_id == pedido.ped_id
+            );
+
+            const total = detallesPedido.reduce(
+
+                (suma, item) =>
+
+                    suma +
+
+                    Number(item.det_precio) *
+
+                    Number(item.det_cantidad),
+
+                0
+
             );
 
             return {
-                ...pedido,
+
+                ped_id: pedido.ped_id,
+
+                cliente: pedido.cli_nombre,
+
+                usuario: pedido.usr_nombre,
+
+                fecha: pedido.ped_fecha,
+
+                estado:
+
+                    pedido.ped_estado == 1
+
+                        ? "Confirmado"
+
+                        : "Pendiente",
+
+                total,
+
                 detalles: detallesPedido
+
             };
 
         });
@@ -178,13 +226,19 @@ export const getPedidos = async (req, res) => {
 
         console.error(error);
 
-        return res.status(500).json({
-            message: "Error al obtener los pedidos."
+        res.status(500).json({
+
+            message: "Error al obtener pedidos."
+
         });
 
     }
+
 };
 
+// ===========================
+// OBTENER PEDIDO POR ID
+// ===========================
 // ===========================
 // OBTENER PEDIDO POR ID
 // ===========================
@@ -195,23 +249,43 @@ export const getPedidoxId = async (req, res) => {
         const { id } = req.params;
 
         const [pedidos] = await conmysql.query(`
-            SELECT
-                p.ped_id,
-                p.cli_id,
-                c.cli_nombre,
-                p.ped_fecha,
-                p.usr_id,
-                p.ped_estado
-            FROM pedidos p
-            LEFT JOIN clientes c
-                ON p.cli_id = c.cli_id
-            WHERE p.ped_id = ?
-        `,[id]);
 
-        if(pedidos.length === 0){
+            SELECT
+
+                p.ped_id,
+
+                p.cli_id,
+
+                c.cli_nombre,
+
+                p.ped_fecha,
+
+                p.usr_id,
+
+                u.usr_nombre,
+
+                p.ped_estado
+
+            FROM pedidos p
+
+            LEFT JOIN clientes c
+
+                ON p.cli_id = c.cli_id
+
+            LEFT JOIN usuarios u
+
+                ON p.usr_id = u.usr_id
+
+            WHERE p.ped_id = ?
+
+        `, [id]);
+
+        if (pedidos.length == 0) {
 
             return res.status(404).json({
-                message:"Pedido no encontrado."
+
+                message: "Pedido no encontrado."
+
             });
 
         }
@@ -219,30 +293,79 @@ export const getPedidoxId = async (req, res) => {
         const pedido = pedidos[0];
 
         const [detalles] = await conmysql.query(`
+
             SELECT
+
                 d.det_id,
+
                 d.ped_id,
+
                 d.prod_id,
+
                 pr.prod_nombre,
+
                 pr.prod_imagen,
+
                 d.det_cantidad,
+
                 d.det_precio
+
             FROM pedidos_detalle d
+
             LEFT JOIN productos pr
+
                 ON d.prod_id = pr.prod_id
+
             WHERE d.ped_id = ?
-        `,[id]);
 
-        pedido.detalles = detalles;
+        `, [id]);
 
-        res.json(pedido);
+        const total = detalles.reduce(
+
+            (suma, item) =>
+
+                suma +
+
+                Number(item.det_precio) *
+
+                Number(item.det_cantidad),
+
+            0
+
+        );
+
+        res.json({
+
+            ped_id: pedido.ped_id,
+
+            cliente: pedido.cli_nombre,
+
+            usuario: pedido.usr_nombre,
+
+            fecha: pedido.ped_fecha,
+
+            estado:
+
+                pedido.ped_estado == 1
+
+                    ? "Confirmado"
+
+                    : "Pendiente",
+
+            total,
+
+            detalles
+
+        });
 
     } catch (error) {
 
         console.error(error);
 
-        return res.status(500).json({
-            message:"Error al obtener el pedido."
+        res.status(500).json({
+
+            message: "Error al obtener pedido."
+
         });
 
     }
